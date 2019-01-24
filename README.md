@@ -1,13 +1,13 @@
-# HTTP client
+# Laravel HTTP client
 
-An easy to use HTTP client on top of Guzzle.
+An easy to use Laravel HTTP client on top of Guzzle.
 
 ## Installation
 
 Add the package to the dependencies of your application
 
 ```
-composer require michielkempen/http-client
+composer require michielkempen/laravel-http-client
 ```
 
 ## Security

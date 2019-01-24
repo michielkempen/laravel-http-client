@@ -1,6 +1,6 @@
 <?php
 
-namespace MichielKempen\HttpClient;
+namespace MichielKempen\LaravelHttpClient;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;

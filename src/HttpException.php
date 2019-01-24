@@ -1,6 +1,6 @@
 <?php
 
-namespace MichielKempen\HttpClient;
+namespace MichielKempen\LaravelHttpClient;
 
 use Illuminate\Http\JsonResponse;
 
