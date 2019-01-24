@@ -1,11 +1,11 @@
 {
-    "name": "michielkempen/http-client",
-    "description": "An easy to use HTTP client on top of Guzzle.",
+    "name": "michielkempen/laravel-http-client",
+    "description": "An easy to use Laravel HTTP client on top of Guzzle.",
     "keywords": [
         "Michiel Kempen",
-        "HTTP client"
+        "Laravel HTTP client"
     ],
-    "homepage": "https://github.com/michielkempen/http-client",
+    "homepage": "https://github.com/michielkempen/laravel-http-client",
     "license": "MIT",
     "authors": [
         {
@@ -23,7 +23,7 @@
     },
     "autoload": {
         "psr-4": {
-            "MichielKempen\\HttpClient\\": "src"
+            "MichielKempen\\LaravelHttpClient\\": "src"
         }
     }
 }
