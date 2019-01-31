@@ -44,13 +44,13 @@ class HttpClient
     {
     	switch ($request->method()) {
 			case 'GET':
-				return $this->get($request->path(), $request->all());
+				return $this->get($request->path(), $request->all(), $request->headers->all());
 			case 'POST':
-				return $this->post($request->path(), $request->all());
+				return $this->post($request->path(), $request->all(), $request->headers->all());
 			case 'PUT':
-				return $this->put($request->path(), $request->all());
+				return $this->put($request->path(), $request->all(), $request->headers->all());
 			case 'DELETE':
-				return $this->delete($request->path(), $request->all());
+				return $this->delete($request->path(), $request->all(), $request->headers->all());
 			default:
 				throw new HttpException("Unknown HTTP method '{$request->method()}'.", 500);
 		}
@@ -62,10 +62,13 @@ class HttpClient
 	 * @return HttpResponse
 	 * @throws HttpException
 	 */
-    public function get(string $url, array $parameters = []): HttpResponse
+    public function get(string $url, array $parameters = [], array $headers = []): HttpResponse
     {
         try {
-			$response = $this->client->get($url, ['query' => $parameters]);
+			$response = $this->client->get($url, [
+				'query' => $parameters,
+				'headers' => $headers,
+			]);
         } catch (RequestException $exception) {
 			$response = $exception->getResponse();
             $this->handleException($response);
@@ -80,10 +83,13 @@ class HttpClient
 	 * @return HttpResponse
 	 * @throws HttpException
 	 */
-	public function post(string $url, array $payload = []): HttpResponse
+	public function post(string $url, array $payload = [], array $headers = []): HttpResponse
 	{
 		try {
-			$response = $this->client->post($url, ['json' => $payload]);
+			$response = $this->client->post($url, [
+				'json' => $payload,
+				'headers' => $headers,
+			]);
 		} catch (RequestException $exception) {
 			$response = $exception->getResponse();
 			$this->handleException($response);
@@ -98,10 +104,13 @@ class HttpClient
 	 * @return HttpResponse
 	 * @throws HttpException
 	 */
-    public function put(string $url, array $payload = []): HttpResponse
+    public function put(string $url, array $payload = [], array $headers = []): HttpResponse
     {
         try {
-            $response = $this->client->put($url, ['json' => $payload]);
+            $response = $this->client->put($url, [
+            	'json' => $payload,
+				'headers' => $headers,
+            ]);
         } catch (RequestException $exception) {
 			$response = $exception->getResponse();
             $this->handleException($response);
@@ -116,10 +125,13 @@ class HttpClient
 	 * @return HttpResponse
 	 * @throws HttpException
 	 */
-	public function delete(string $url, array $parameters = []): HttpResponse
+	public function delete(string $url, array $parameters = [], array $headers = []): HttpResponse
 	{
 		try {
-			$response = $this->client->delete($url, ['query' => $parameters]);
+			$response = $this->client->delete($url, [
+				'query' => $parameters,
+				'headers' => $headers,
+			]);
 		} catch (RequestException $exception) {
 			$response = $exception->getResponse();
 			$this->handleException($response);
