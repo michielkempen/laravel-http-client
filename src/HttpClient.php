@@ -18,7 +18,7 @@ class HttpClient
 	/**
 	 * @var bool
 	 */
-	private $handleExceptions;
+	protected $handleExceptions;
 
 	/**
 	 * @param string $host
@@ -44,13 +44,13 @@ class HttpClient
     {
     	switch ($request->method()) {
 			case 'GET':
-				return $this->get($request->path(), $request->all(), $request->headers->all());
+				return $this->get($request->path(), $request->all(), $this->headers($request));
 			case 'POST':
-				return $this->post($request->path(), $request->all(), $request->headers->all());
+				return $this->post($request->path(), $request->all(), $this->headers($request));
 			case 'PUT':
-				return $this->put($request->path(), $request->all(), $request->headers->all());
+				return $this->put($request->path(), $request->all(), $this->headers($request));
 			case 'DELETE':
-				return $this->delete($request->path(), $request->all(), $request->headers->all());
+				return $this->delete($request->path(), $request->all(), $this->headers($request));
 			default:
 				throw new HttpException("Unknown HTTP method '{$request->method()}'.", 500);
 		}
@@ -139,6 +139,19 @@ class HttpClient
 
 		return new HttpResponse($response);
 	}
+
+    /**
+     * @param Request $request
+     * @return array
+     */
+    protected function headers(Request $request): array
+    {
+    	$headers = $request->headers->all();
+
+    	unset($headers['Authorization']);
+
+    	return $headers;
+    }
 
 	/**
 	 * @param Response $response
