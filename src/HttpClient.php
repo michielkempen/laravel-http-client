@@ -87,7 +87,7 @@ class HttpClient
 	{
 		try {
 			$response = $this->client->post($url, [
-				'json' => $payload,
+				'form_params' => $payload,
 				'headers' => $headers,
 			]);
 		} catch (RequestException $exception) {
@@ -108,7 +108,7 @@ class HttpClient
     {
         try {
             $response = $this->client->put($url, [
-            	'json' => $payload,
+            	'form_params' => $payload,
 				'headers' => $headers,
             ]);
         } catch (RequestException $exception) {
