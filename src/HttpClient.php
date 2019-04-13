@@ -49,6 +49,8 @@ class HttpClient
 				return $this->post($request->path(), $request->all());
 			case 'PUT':
 				return $this->put($request->path(), $request->all());
+			case 'PATCH':
+				return $this->patch($request->path(), $request->all());
 			case 'DELETE':
 				return $this->delete($request->path(), $request->all());
 			default:
@@ -106,6 +108,26 @@ class HttpClient
     {
         try {
             $response = $this->client->put($url, [
+            	'json' => $payload,
+            ]);
+        } catch (RequestException $exception) {
+			$response = $exception->getResponse();
+            $this->handleException($response);
+        }
+
+        return new HttpResponse($response);
+    }
+
+	/**
+	 * @param string $url
+	 * @param array $payload
+	 * @return HttpResponse
+	 * @throws HttpException
+	 */
+    public function patch(string $url, array $payload = []): HttpResponse
+    {
+        try {
+            $response = $this->client->patch($url, [
             	'json' => $payload,
             ]);
         } catch (RequestException $exception) {
