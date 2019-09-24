@@ -7,6 +7,7 @@ use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\ServerException;
 use Illuminate\Http\Request;
 use Psr\Http\Message\ResponseInterface as Response;
 
@@ -169,7 +170,7 @@ class HttpClient
             throw new HttpException($exception->getHandlerContext()['error'], 500);
         }
 
-        if($exception instanceof ClientException) {
+        if($exception instanceof ClientException || $exception instanceof ServerException) {
             $response = $exception->getResponse();
 
             $status = $response->getStatusCode();
