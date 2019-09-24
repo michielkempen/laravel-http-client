@@ -4,12 +4,10 @@ namespace MichielKempen\LaravelHttpClient;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Exception\ServerException;
-use Illuminate\Http\Request;
 use Psr\Http\Message\ResponseInterface as Response;
+use Illuminate\Http\Request;
 
 class HttpClient
 {
@@ -21,21 +19,53 @@ class HttpClient
     /**
      * @var bool
      */
-    protected $handleExceptions;
+    protected $handleExceptions = true;
+
+    /**
+     * @var bool
+     */
+    protected $returnRawResponse = false;
 
     /**
      * @param string $host
      * @param array $headers
-     * @param bool $handleExceptions
      */
-    public function __construct(string $host, array $headers = [], bool $handleExceptions = true)
+    public function __construct(string $host, array $headers = [])
     {
         $this->client = new Client([
             'base_uri' => $host,
             'headers' => $headers
         ]);
+    }
 
-        $this->handleExceptions = $handleExceptions;
+    /**
+     * @return HttpClient
+     */
+    public function withExceptionHandling(): self
+    {
+        $this->handleExceptions = true;
+
+        return $this;
+    }
+
+    /**
+     * @return HttpClient
+     */
+    public function withoutExceptionHandling(): self
+    {
+        $this->handleExceptions = false;
+
+        return $this;
+    }
+
+    /**
+     * @return HttpClient
+     */
+    public function returnRawResponse(): self
+    {
+        $this->returnRawResponse = true;
+
+        return $this;
     }
 
     /**
@@ -43,7 +73,7 @@ class HttpClient
      * @return HttpResponse
      * @throws HttpException
      */
-    public function request(Request $request): HttpResponse
+    public function request(Request $request)
     {
         switch ($request->method()) {
             case 'GET':
@@ -64,113 +94,114 @@ class HttpClient
     /**
      * @param string $url
      * @param array $parameters
-     * @return HttpResponse
+     * @return HttpResponse|Response
      * @throws HttpException
      */
-    public function get(string $url, array $parameters = []): HttpResponse
+    public function get(string $url, array $parameters = [])
     {
         try {
             $response = $this->client->get($url, [
                 'query' => $parameters,
             ]);
         } catch (RequestException $exception) {
-            $this->handleException($exception);
+            $response = $this->handleException($exception);
         }
 
-        return new HttpResponse($response);
+        return $this->returnRawResponse ? $response : new HttpResponse($response);
     }
 
     /**
      * @param string $url
      * @param array $payload
-     * @return HttpResponse
+     * @return HttpResponse|Response
      * @throws HttpException
      */
-    public function post(string $url, array $payload = []): HttpResponse
+    public function post(string $url, array $payload = [])
     {
         try {
             $response = $this->client->post($url, [
                 'json' => $payload,
             ]);
         } catch (RequestException $exception) {
-            $this->handleException($exception);
+            $response = $this->handleException($exception);
         }
 
-        return new HttpResponse($response);
+        return $this->returnRawResponse ? $response : new HttpResponse($response);
     }
 
     /**
      * @param string $url
      * @param array $payload
-     * @return HttpResponse
+     * @return HttpResponse|Response
      * @throws HttpException
      */
-    public function put(string $url, array $payload = []): HttpResponse
+    public function put(string $url, array $payload = [])
     {
         try {
             $response = $this->client->put($url, [
                 'json' => $payload,
             ]);
         } catch (RequestException $exception) {
-            $this->handleException($exception);
+            $response = $this->handleException($exception);
         }
 
-        return new HttpResponse($response);
+        return $this->returnRawResponse ? $response : new HttpResponse($response);
     }
 
     /**
      * @param string $url
      * @param array $payload
-     * @return HttpResponse
+     * @return HttpResponse|Response
      * @throws HttpException
      */
-    public function patch(string $url, array $payload = []): HttpResponse
+    public function patch(string $url, array $payload = [])
     {
         try {
             $response = $this->client->patch($url, [
                 'json' => $payload,
             ]);
         } catch (RequestException $exception) {
-            $this->handleException($exception);
+            $response = $this->handleException($exception);
         }
 
-        return new HttpResponse($response);
+        return $this->returnRawResponse ? $response : new HttpResponse($response);
     }
 
     /**
      * @param string $url
      * @param array $parameters
-     * @return HttpResponse
+     * @return HttpResponse|Response
      * @throws HttpException
      */
-    public function delete(string $url, array $parameters = []): HttpResponse
+    public function delete(string $url, array $parameters = [])
     {
         try {
             $response = $this->client->delete($url, [
                 'query' => $parameters,
             ]);
         } catch (RequestException $exception) {
-            $this->handleException($exception);
+            $response = $this->handleException($exception);
         }
 
-        return new HttpResponse($response);
+        return $this->returnRawResponse ? $response : new HttpResponse($response);
     }
 
     /**
-     * @param Response $response
+     * @param RequestException $exception
+     * @return Response
      * @throws HttpException
      */
-    protected function handleException(RequestException $exception): void
+    protected function handleException(RequestException $exception): Response
     {
-        if(! $this->handleExceptions) {
-            return;
+        if(! $this->handleExceptions && $exception->hasResponse()) {
+            return $exception->getResponse();
         }
 
         if($exception instanceof ConnectException) {
             throw new HttpException($exception->getHandlerContext()['error'], 500);
         }
 
-        if($exception instanceof ClientException || $exception instanceof ServerException) {
+        if($exception->hasResponse()) {
             $response = $exception->getResponse();
 
             $status = $response->getStatusCode();
