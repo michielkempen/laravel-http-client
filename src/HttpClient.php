@@ -5,6 +5,7 @@ namespace MichielKempen\LaravelHttpClient;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Message\ResponseInterface as Response;
 use Illuminate\Http\Request;
@@ -70,10 +71,10 @@ class HttpClient
 
     /**
      * @param Request $request
-     * @return HttpResponse
+     * @return HttpResponse|Response
      * @throws HttpException
      */
-    public function request(Request $request)
+    public function forward(Request $request)
     {
         switch ($request->method()) {
             case 'GET':
@@ -99,15 +100,7 @@ class HttpClient
      */
     public function get(string $url, array $parameters = [])
     {
-        try {
-            $response = $this->client->get($url, [
-                'query' => $parameters,
-            ]);
-        } catch (RequestException $exception) {
-            $response = $this->handleException($exception);
-        }
-
-        return $this->returnRawResponse ? $response : new HttpResponse($response);
+        return $this->request('GET', $url, ['query' => $parameters]);
     }
 
     /**
@@ -118,15 +111,7 @@ class HttpClient
      */
     public function post(string $url, array $payload = [])
     {
-        try {
-            $response = $this->client->post($url, [
-                'json' => $payload,
-            ]);
-        } catch (RequestException $exception) {
-            $response = $this->handleException($exception);
-        }
-
-        return $this->returnRawResponse ? $response : new HttpResponse($response);
+        return $this->request('POST', $url, ['json' => $payload]);
     }
 
     /**
@@ -137,15 +122,7 @@ class HttpClient
      */
     public function put(string $url, array $payload = [])
     {
-        try {
-            $response = $this->client->put($url, [
-                'json' => $payload,
-            ]);
-        } catch (RequestException $exception) {
-            $response = $this->handleException($exception);
-        }
-
-        return $this->returnRawResponse ? $response : new HttpResponse($response);
+        return $this->request('PUT', $url, ['json' => $payload]);
     }
 
     /**
@@ -156,15 +133,7 @@ class HttpClient
      */
     public function patch(string $url, array $payload = [])
     {
-        try {
-            $response = $this->client->patch($url, [
-                'json' => $payload,
-            ]);
-        } catch (RequestException $exception) {
-            $response = $this->handleException($exception);
-        }
-
-        return $this->returnRawResponse ? $response : new HttpResponse($response);
+        return $this->request('PATCH', $url, ['json' => $payload]);
     }
 
     /**
@@ -175,12 +144,24 @@ class HttpClient
      */
     public function delete(string $url, array $parameters = [])
     {
+        return $this->request('DELETE', $url, ['query' => $parameters]);
+    }
+
+    /**
+     * @param string $method
+     * @param string $url
+     * @param array $options
+     * @return HttpResponse|Response
+     * @throws HttpException
+     */
+    public function request(string $method, string $url, array $options = [])
+    {
         try {
-            $response = $this->client->delete($url, [
-                'query' => $parameters,
-            ]);
+            $response = $this->client->request($method, $url, $options);
         } catch (RequestException $exception) {
             $response = $this->handleException($exception);
+        } catch (GuzzleException $exception) {
+            throw new HttpException("API request not processed. Reason: {$exception->getMessage()}", 500);
         }
 
         return $this->returnRawResponse ? $response : new HttpResponse($response);
