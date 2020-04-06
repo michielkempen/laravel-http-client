@@ -60,6 +60,14 @@ class HttpResponse implements Responsable
 	}
 
 	/**
+	 * @return string
+	 */
+	public function toString(): string
+	{
+		return (string) $this->response->getBody();
+	}
+
+	/**
 	 * Create an HTTP response that represents the object.
 	 *
 	 * @param  Request $request
