@@ -71,22 +71,23 @@ class HttpClient
 
     /**
      * @param Request $request
+     * @param array $headers
      * @return HttpResponse|Response
      * @throws HttpException
      */
-    public function forward(Request $request)
+    public function forward(Request $request, array $headers = [])
     {
         switch ($request->method()) {
             case 'GET':
-                return $this->get($request->path(), $request->all(), $request->headers->all());
+                return $this->get($request->path(), $request->all(), $headers);
             case 'POST':
-                return $this->post($request->path(), $request->all(), $request->headers->all());
+                return $this->post($request->path(), $request->all(), $headers);
             case 'PUT':
-                return $this->put($request->path(), $request->all(), $request->headers->all());
+                return $this->put($request->path(), $request->all(), $headers);
             case 'PATCH':
-                return $this->patch($request->path(), $request->all(), $request->headers->all());
+                return $this->patch($request->path(), $request->all(), $headers);
             case 'DELETE':
-                return $this->delete($request->path(), $request->all(), $request->headers->all());
+                return $this->delete($request->path(), $request->all(), $headers);
             default:
                 throw new HttpException("Unknown HTTP method '{$request->method()}'.", 500);
         }
