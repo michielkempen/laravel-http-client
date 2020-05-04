@@ -78,15 +78,15 @@ class HttpClient
     {
         switch ($request->method()) {
             case 'GET':
-                return $this->get($request->path(), $request->all());
+                return $this->get($request->path(), $request->all(), $request->headers->all());
             case 'POST':
-                return $this->post($request->path(), $request->all());
+                return $this->post($request->path(), $request->all(), $request->headers->all());
             case 'PUT':
-                return $this->put($request->path(), $request->all());
+                return $this->put($request->path(), $request->all(), $request->headers->all());
             case 'PATCH':
-                return $this->patch($request->path(), $request->all());
+                return $this->patch($request->path(), $request->all(), $request->headers->all());
             case 'DELETE':
-                return $this->delete($request->path(), $request->all());
+                return $this->delete($request->path(), $request->all(), $request->headers->all());
             default:
                 throw new HttpException("Unknown HTTP method '{$request->method()}'.", 500);
         }
@@ -95,56 +95,61 @@ class HttpClient
     /**
      * @param string $url
      * @param array $parameters
+     * @param array $headers
      * @return HttpResponse|Response
      * @throws HttpException
      */
-    public function get(string $url, array $parameters = [])
+    public function get(string $url, array $parameters = [], array $headers = [])
     {
-        return $this->request('GET', $url, ['query' => $parameters]);
+        return $this->request('GET', $url, ['query' => $parameters, 'headers' => $headers]);
     }
 
     /**
      * @param string $url
      * @param array $payload
+     * @param array $headers
      * @return HttpResponse|Response
      * @throws HttpException
      */
-    public function post(string $url, array $payload = [])
+    public function post(string $url, array $payload = [], array $headers = [])
     {
-        return $this->request('POST', $url, ['json' => $payload]);
+        return $this->request('POST', $url, ['json' => $payload, 'headers' => $headers]);
     }
 
     /**
      * @param string $url
      * @param array $payload
+     * @param array $headers
      * @return HttpResponse|Response
      * @throws HttpException
      */
-    public function put(string $url, array $payload = [])
+    public function put(string $url, array $payload = [], array $headers = [])
     {
-        return $this->request('PUT', $url, ['json' => $payload]);
+        return $this->request('PUT', $url, ['json' => $payload, 'headers' => $headers]);
     }
 
     /**
      * @param string $url
      * @param array $payload
+     * @param array $headers
      * @return HttpResponse|Response
      * @throws HttpException
      */
-    public function patch(string $url, array $payload = [])
+    public function patch(string $url, array $payload = [], array $headers = [])
     {
-        return $this->request('PATCH', $url, ['json' => $payload]);
+        return $this->request('PATCH', $url, ['json' => $payload, 'headers' => $headers]);
     }
 
     /**
      * @param string $url
      * @param array $parameters
+     * @param array $headers
      * @return HttpResponse|Response
      * @throws HttpException
      */
-    public function delete(string $url, array $parameters = [])
+    public function delete(string $url, array $parameters = [], array $headers = [])
     {
-        return $this->request('DELETE', $url, ['query' => $parameters]);
+        return $this->request('DELETE', $url, ['query' => $parameters, 'headers' => $headers]);
     }
 
     /**
