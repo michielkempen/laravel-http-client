@@ -30,12 +30,14 @@ class HttpClient
     /**
      * @param string $host
      * @param array $headers
+     * @param bool $verifyTls
      */
-    public function __construct(string $host, array $headers = [])
+    public function __construct(string $host, array $headers = [], bool $verifyTls = true)
     {
         $this->client = new Client([
             'base_uri' => $host,
-            'headers' => $headers
+            'headers' => $headers,
+            'verify' => $verifyTls,
         ]);
     }
 
