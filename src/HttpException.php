@@ -18,7 +18,7 @@ class HttpException extends \Exception
      * @param int $statusCode
      * @param array $payload
      */
-    public function __construct(string $message, int $statusCode, ?array $payload = null)
+    public function __construct(string $message, int $statusCode = 0, ?array $payload = null)
     {
         parent::__construct($message, $statusCode);
 
