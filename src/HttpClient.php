@@ -12,26 +12,10 @@ use Illuminate\Http\Request;
 
 class HttpClient
 {
-    /**
-     * @var ClientInterface
-     */
-    protected $client;
+    protected ClientInterface $client;
+    protected bool $handleExceptions = true;
+    protected bool $returnRawResponse = false;
 
-    /**
-     * @var bool
-     */
-    protected $handleExceptions = true;
-
-    /**
-     * @var bool
-     */
-    protected $returnRawResponse = false;
-
-    /**
-     * @param string $host
-     * @param array $headers
-     * @param bool $verifyTls
-     */
     public function __construct(string $host, array $headers = [], bool $verifyTls = true)
     {
         $this->client = new Client([
@@ -41,33 +25,21 @@ class HttpClient
         ]);
     }
 
-    /**
-     * @return HttpClient
-     */
     public function withExceptionHandling(): self
     {
         $this->handleExceptions = true;
-
         return $this;
     }
 
-    /**
-     * @return HttpClient
-     */
     public function withoutExceptionHandling(): self
     {
         $this->handleExceptions = false;
-
         return $this;
     }
 
-    /**
-     * @return HttpClient
-     */
     public function returnRawResponse(): self
     {
         $this->returnRawResponse = true;
-
         return $this;
     }
 
@@ -175,11 +147,6 @@ class HttpClient
         return $this->returnRawResponse ? $response : new HttpResponse($response);
     }
 
-    /**
-     * @param RequestException $exception
-     * @return Response
-     * @throws HttpException
-     */
     protected function handleException(RequestException $exception): Response
     {
         if(! $this->handleExceptions && $exception->hasResponse()) {
