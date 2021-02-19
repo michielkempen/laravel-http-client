@@ -2,171 +2,223 @@
 
 namespace MichielKempen\LaravelHttpClient;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Exception\RequestException;
-use Psr\Http\Message\ResponseInterface as Response;
+use GuzzleHttp\Client as Http;
+use GuzzleHttp\ClientInterface as HttpInterface;
 use Illuminate\Http\Request;
 
 class HttpClient
 {
-    protected ClientInterface $client;
-    protected bool $handleExceptions = true;
-    protected bool $returnRawResponse = false;
+    /**
+     * The underlying Guzzle HTTP client.
+     */
+    protected HttpInterface $http;
 
-    public function __construct(string $host, array $headers = [], bool $verifyTls = true)
-    {
-        $this->client = new Client([
-            'base_uri' => $host,
-            'headers' => $headers,
-            'verify' => $verifyTls,
-        ]);
-    }
+    /**
+     * The request options.
+     */
+    protected array $options = [];
 
-    public function withExceptionHandling(): self
+    /**
+     * Create a new HTTP client.
+     */
+    public function __construct()
     {
-        $this->handleExceptions = true;
-        return $this;
-    }
-
-    public function withoutExceptionHandling(): self
-    {
-        $this->handleExceptions = false;
-        return $this;
-    }
-
-    public function returnRawResponse(): self
-    {
-        $this->returnRawResponse = true;
-        return $this;
+        $this->http = new Http();
+        $this->options = [
+            'http_errors' => false,
+        ];
     }
 
     /**
-     * @param Request $request
-     * @param array $headers
-     * @return HttpResponse|Response
-     * @throws HttpException
+     * Create a new HTTP client.
      */
-    public function forward(Request $request, array $headers = [])
+    public static function new(): self
     {
+        return new static();
+    }
+
+    /**
+     * Set the base URL for the pending request.
+     */
+    public function withBaseUrl(string $url): self
+    {
+        return tap($this, fn () => $this->options['base_uri'] = $url);
+    }
+
+    /**
+     * Add the given headers to the pending request.
+     */
+    public function withHeaders(array $headers): self
+    {
+        return tap($this, fn () => array_merge_recursive($this->options, ['headers' => $headers]));
+    }
+
+    /**
+     * Specify the authorization token for the pending request.
+     */
+    public function withToken(string $token, string $type = 'Bearer'): self
+    {
+        return tap($this, fn () => $this->options['headers']['Authorization'] = trim($type.' '.$token));
+    }
+
+    /**
+     * Indicate that TLS certificates should not be verified.
+     */
+    public function withoutTlsVerification(): self
+    {
+        return tap($this, fn () => $this->options['verify'] = false);
+    }
+
+    /**
+     * Specify the timeout (in seconds) for the pending request.
+     */
+    public function withTimeout(int $seconds): self
+    {
+        return tap($this, fn () => $this->options['timeout'] = $seconds);
+    }
+
+    /**
+     * Attach query parameters to the pending request.
+     */
+    public function withQuery(array $parameters): self
+    {
+        return tap($this, fn () => $this->options['query'] = $parameters);
+    }
+
+    /**
+     * Attach a json body to the pending request.
+     */
+    public function withJsonBody(array $body): self
+    {
+        return tap($this, fn () => $this->options['json'] = $body);
+    }
+
+    /**
+     * Attach a multipart body to the pending request.
+     */
+    public function withMultipartBody(array $body): self
+    {
+        return tap($this, fn () => $this->options['multipart'] = $body);
+    }
+
+    /**
+     * Forward the given Laravel request to a different host.
+     */
+    public function forward(Request $request): HttpResponse
+    {
+        $this->withHeaders($request->headers->all());
+
+        if ($request->method() === 'GET') {
+            return $this->withQuery($request->all())->get($request->path());
+        }
+
+        if ($request->method() === 'HEAD') {
+            return $this->withQuery($request->all())->head($request->path());
+        }
+
+        if ($request->getContentType() === 'multipart/form-data') {
+            $this->withMultipartBody($this->generateMultipartBody($request));
+        } else {
+            $this->withJsonBody($request->input());
+        }
+
         switch ($request->method()) {
-            case 'GET':
-                return $this->get($request->path(), $request->all(), $headers);
             case 'POST':
-                return $this->post($request->path(), $request->all(), $headers);
+                return $this->post($request->path());
             case 'PUT':
-                return $this->put($request->path(), $request->all(), $headers);
+                return $this->put($request->path());
             case 'PATCH':
-                return $this->patch($request->path(), $request->all(), $headers);
+                return $this->patch($request->path());
             case 'DELETE':
-                return $this->delete($request->path(), $request->all(), $headers);
+                return $this->delete($request->path());
             default:
                 throw new HttpException("Unknown HTTP method '{$request->method()}'.", 500);
         }
     }
 
     /**
-     * @param string $url
-     * @param array $parameters
-     * @param array $headers
-     * @return HttpResponse|Response
-     * @throws HttpException
+     * Send a GET request.
      */
-    public function get(string $url, array $parameters = [], array $headers = [])
+    public function get(string $url): HttpResponse
     {
-        return $this->request('GET', $url, ['query' => $parameters, 'headers' => $headers]);
+        return $this->send('GET', $url);
     }
 
     /**
-     * @param string $url
-     * @param array $payload
-     * @param array $headers
-     * @return HttpResponse|Response
-     * @throws HttpException
+     * Send a HEAD request.
      */
-    public function post(string $url, array $payload = [], array $headers = [])
+    public function head(string $url): HttpResponse
     {
-        return $this->request('POST', $url, ['json' => $payload, 'headers' => $headers]);
+        return $this->send('HEAD', $url);
     }
 
     /**
-     * @param string $url
-     * @param array $payload
-     * @param array $headers
-     * @return HttpResponse|Response
-     * @throws HttpException
+     * Send a POST request.
      */
-    public function put(string $url, array $payload = [], array $headers = [])
+    public function post(string $url): HttpResponse
     {
-        return $this->request('PUT', $url, ['json' => $payload, 'headers' => $headers]);
+        return $this->send('POST', $url);
     }
 
     /**
-     * @param string $url
-     * @param array $payload
-     * @param array $headers
-     * @return HttpResponse|Response
-     * @throws HttpException
+     * Send a PUT request.
      */
-    public function patch(string $url, array $payload = [], array $headers = [])
+    public function put(string $url): HttpResponse
     {
-        return $this->request('PATCH', $url, ['json' => $payload, 'headers' => $headers]);
+        return $this->send('PUT', $url);
     }
 
     /**
-     * @param string $url
-     * @param array $parameters
-     * @param array $headers
-     * @return HttpResponse|Response
-     * @throws HttpException
+     * Send a PATCH request.
      */
-    public function delete(string $url, array $parameters = [], array $headers = [])
+    public function patch(string $url): HttpResponse
     {
-        return $this->request('DELETE', $url, ['query' => $parameters, 'headers' => $headers]);
+        return $this->send('PATCH', $url);
     }
 
     /**
-     * @param string $method
-     * @param string $url
-     * @param array $options
-     * @return HttpResponse|Response
-     * @throws HttpException
+     * Send a DELETE request.
      */
-    public function request(string $method, string $url, array $options = [])
+    public function delete(string $url): HttpResponse
     {
-        try {
-            $response = $this->client->request($method, $url, $options);
-        } catch (RequestException $exception) {
-            $response = $this->handleException($exception);
-        } catch (GuzzleException $exception) {
-            throw new HttpException("API request not processed. Reason: {$exception->getMessage()}", 500);
+        return $this->send('DELETE', $url);
+    }
+
+    /**
+     * Parse the Laravel request to a multipart payload.
+     */
+    protected function generateMultipartBody(Request $request): array
+    {
+        $multipart = [];
+
+        foreach ($request->input() as $field => $value) {
+            $multipart[] = [
+                'name'     => $field,
+                'contents' => $value,
+            ];
         }
 
-        return $this->returnRawResponse ? $response : new HttpResponse($response);
+        foreach ($request->allFiles() as $field => $files) {
+            $files = is_array($files) ? $files : [$files];
+            foreach ($files as $file) {
+                $multipart[] = [
+                    'name'     => $field,
+                    'contents' => fopen($file->path(), 'r'),
+                    'filename' => $file->getClientOriginalName(),
+                ];
+            }
+        }
+
+        return $multipart;
     }
 
-    protected function handleException(RequestException $exception): Response
+    /**
+     * Send the pending request using the given HTTP method.
+     */
+    protected function send(string $method, string $url): HttpResponse
     {
-        if(! $this->handleExceptions && $exception->hasResponse()) {
-            return $exception->getResponse();
-        }
+        $response = $this->http->request($method, $url, $this->options);
 
-        if($exception instanceof ConnectException) {
-            throw new HttpException($exception->getHandlerContext()['error'], 500);
-        }
-
-        if($exception->hasResponse()) {
-            $response = $exception->getResponse();
-
-            $status = $response->getStatusCode();
-            $payload = json_decode($response->getBody()->getContents(), true) ?? [];
-            $message = $payload['message'] ?? 'API request not processed.';
-
-            throw new HttpException($message, $status, $payload);
-        }
-
-        throw $exception;
+        return new HttpResponse($response);
     }
 }

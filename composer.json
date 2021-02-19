@@ -17,14 +17,19 @@
     ],
     "require": {
         "php": "^7.4",
-        "illuminate/support": "^5.6|^6.0|^7.0|^8.0",
-        "illuminate/http": "^5.6|^6.0|^7.0|^8.0",
+        "illuminate/support": "^7.0|^8.0",
+        "illuminate/http": "^7.0|^8.0",
         "guzzlehttp/guzzle": "^7.0",
-        "ext-json": "*"
+        "ext-json": "*",
+        "symfony/psr-http-message-bridge": "^2.1"
     },
     "autoload": {
         "psr-4": {
             "MichielKempen\\LaravelHttpClient\\": "src"
         }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "orchestra/testbench": "^6.0"
     }
 }
