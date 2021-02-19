@@ -13,23 +13,23 @@ class HttpResponse implements Responsable
     /**
      * The underlying PSR response.
      */
-	protected Response $response;
+    protected Response $response;
 
     /**
      * Create a new HTTP response.
      */
-	public function __construct(Response $response)
-	{
-		$this->response = $response;
-	}
+    public function __construct(Response $response)
+    {
+        $this->response = $response;
+    }
 
     /**
      * Get the status code of the response.
      */
-	public function getStatusCode(): int
-	{
-		return (int) $this->response->getStatusCode();
-	}
+    public function getStatusCode(): int
+    {
+        return (int) $this->response->getStatusCode();
+    }
 
     /**
      * Determine if the request was successful.
@@ -92,30 +92,30 @@ class HttpResponse implements Responsable
     /**
      * Get the JSON decoded body of the response as an object.
      */
-	public function toObject(): object
-	{
-		$body = (string) $this->response->getBody();
+    public function toObject(): object
+    {
+        $body = (string) $this->response->getBody();
 
-		return json_decode($body) ?? (object) [];
-	}
+        return json_decode($body) ?? (object) [];
+    }
 
     /**
      * Get the JSON decoded body of the response as an array.
      */
-	public function toArray(): array
-	{
-		$body = (string) $this->response->getBody();
+    public function toArray(): array
+    {
+        $body = (string) $this->response->getBody();
 
-		return json_decode($body, true) ?? [];
-	}
+        return json_decode($body, true) ?? [];
+    }
 
     /**
      * Get the Symfony representation of the response.
      */
-	public function toResponse($request = null): SymfonyResponse
-	{
-        return (new HttpFoundationFactory)->createResponse($this->response);
-	}
+    public function toResponse($request = null): SymfonyResponse
+    {
+        return (new HttpFoundationFactory())->createResponse($this->response);
+    }
 
     /**
      * Get the body of the response.
