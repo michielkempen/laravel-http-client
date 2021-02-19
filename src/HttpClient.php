@@ -101,6 +101,9 @@ class HttpClient
         return tap($this, fn () => $this->options['multipart'] = $body);
     }
 
+    /**
+     * Forward the given Laravel request to a different host.
+     */
     public function forward(Request $request): HttpResponse
     {
         $this->withHeaders($request->headers->all());
@@ -133,36 +136,57 @@ class HttpClient
         }
     }
 
+    /**
+     * Send a GET request.
+     */
     public function get(string $url): HttpResponse
     {
         return $this->send('GET', $url);
     }
 
+    /**
+     * Send a HEAD request.
+     */
     public function head(string $url): HttpResponse
     {
         return $this->send('HEAD', $url);
     }
 
+    /**
+     * Send a POST request.
+     */
     public function post(string $url): HttpResponse
     {
         return $this->send('POST', $url);
     }
 
+    /**
+     * Send a PUT request.
+     */
     public function put(string $url): HttpResponse
     {
         return $this->send('PUT', $url);
     }
 
+    /**
+     * Send a PATCH request.
+     */
     public function patch(string $url): HttpResponse
     {
         return $this->send('PATCH', $url);
     }
 
+    /**
+     * Send a DELETE request.
+     */
     public function delete(string $url): HttpResponse
     {
         return $this->send('DELETE', $url);
     }
 
+    /**
+     * Parse the Laravel request to a multipart payload.
+     */
     protected function generateMultipartBody(Request $request): array
     {
         $multipart = [];
@@ -188,6 +212,9 @@ class HttpClient
         return $multipart;
     }
 
+    /**
+     * Send the pending request using the given HTTP method.
+     */
     protected function send(string $method, string $url): HttpResponse
     {
         $response = $this->http->request($method, $url, $this->options);
