@@ -3,6 +3,7 @@
 namespace MichielKempen\LaravelHttpClient;
 
 use Illuminate\Contracts\Support\Responsable;
+use Illuminate\Support\Str;
 use Psr\Http\Message\ResponseInterface as Response;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
@@ -57,7 +58,7 @@ class HttpResponse implements Responsable
     /**
      * Determine if a client or server error occurred.
      */
-    public function errorOccurred(): int
+    public function errorOccurred(): bool
     {
         return $this->serverErrorOccurred() || $this->clientErrorOccurred();
     }
@@ -65,9 +66,11 @@ class HttpResponse implements Responsable
     /**
      * Get the content type of the response.
      */
-    public function getContentType(): string
+    public function getContentType(): ?string
     {
-        return $this->response->getHeaderLine('Content-Type');
+        $header = $this->response->getHeaderLine('Content-Type');
+
+        return $header === '' ? null : $header;
     }
 
     /**
@@ -75,7 +78,7 @@ class HttpResponse implements Responsable
      */
     public function containsJson(): bool
     {
-        return $this->getContentType() === 'application/json';
+        return Str::contains($this->getContentType(), 'application/json');
     }
 
     /**
@@ -109,7 +112,7 @@ class HttpResponse implements Responsable
     /**
      * Get the Symfony representation of the response.
      */
-	public function toResponse($request): SymfonyResponse
+	public function toResponse($request = null): SymfonyResponse
 	{
         return (new HttpFoundationFactory)->createResponse($this->response);
 	}

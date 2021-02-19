@@ -30,6 +30,14 @@ class HttpClient
     }
 
     /**
+     * Create a new HTTP client.
+     */
+    public static function new(): self
+    {
+        return new static;
+    }
+
+    /**
      * Set the base URL for the pending request.
      */
     public function withBaseUrl(string $url): self
