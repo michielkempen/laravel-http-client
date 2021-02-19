@@ -23,7 +23,7 @@ class HttpClient
      */
     public function __construct()
     {
-        $this->http = new Http;
+        $this->http = new Http();
         $this->options = [
             'http_errors' => false,
         ];
@@ -34,7 +34,7 @@ class HttpClient
      */
     public static function new(): self
     {
-        return new static;
+        return new static();
     }
 
     /**
@@ -42,7 +42,7 @@ class HttpClient
      */
     public function withBaseUrl(string $url): self
     {
-        return tap($this, fn() => $this->options['base_uri'] = $url);
+        return tap($this, fn () => $this->options['base_uri'] = $url);
     }
 
     /**
@@ -50,7 +50,7 @@ class HttpClient
      */
     public function withHeaders(array $headers): self
     {
-        return tap($this, fn() => array_merge_recursive($this->options, ['headers' => $headers]));
+        return tap($this, fn () => array_merge_recursive($this->options, ['headers' => $headers]));
     }
 
     /**
@@ -58,7 +58,7 @@ class HttpClient
      */
     public function withToken(string $token, string $type = 'Bearer'): self
     {
-        return tap($this, fn() => $this->options['headers']['Authorization'] = trim($type.' '.$token));
+        return tap($this, fn () => $this->options['headers']['Authorization'] = trim($type.' '.$token));
     }
 
     /**
@@ -66,7 +66,7 @@ class HttpClient
      */
     public function withoutTlsVerification(): self
     {
-        return tap($this, fn() => $this->options['verify'] = false);
+        return tap($this, fn () => $this->options['verify'] = false);
     }
 
     /**
@@ -74,7 +74,7 @@ class HttpClient
      */
     public function withTimeout(int $seconds): self
     {
-        return tap($this, fn() => $this->options['timeout'] = $seconds);
+        return tap($this, fn () => $this->options['timeout'] = $seconds);
     }
 
     /**
@@ -82,7 +82,7 @@ class HttpClient
      */
     public function withQuery(array $parameters): self
     {
-        return tap($this, fn() => $this->options['query'] = $parameters);
+        return tap($this, fn () => $this->options['query'] = $parameters);
     }
 
     /**
@@ -90,7 +90,7 @@ class HttpClient
      */
     public function withJsonBody(array $body): self
     {
-        return tap($this, fn() => $this->options['json'] = $body);
+        return tap($this, fn () => $this->options['json'] = $body);
     }
 
     /**
@@ -98,22 +98,22 @@ class HttpClient
      */
     public function withMultipartBody(array $body): self
     {
-        return tap($this, fn() => $this->options['multipart'] = $body);
+        return tap($this, fn () => $this->options['multipart'] = $body);
     }
 
     public function forward(Request $request): HttpResponse
     {
         $this->withHeaders($request->headers->all());
 
-        if($request->method() === 'GET') {
+        if ($request->method() === 'GET') {
             return $this->withQuery($request->all())->get($request->path());
         }
 
-        if($request->method() === 'HEAD') {
+        if ($request->method() === 'HEAD') {
             return $this->withQuery($request->all())->head($request->path());
         }
 
-        if($request->getContentType() === 'multipart/form-data') {
+        if ($request->getContentType() === 'multipart/form-data') {
             $this->withMultipartBody($this->generateMultipartBody($request));
         } else {
             $this->withJsonBody($request->input());
@@ -169,7 +169,7 @@ class HttpClient
 
         foreach ($request->input() as $field => $value) {
             $multipart[] = [
-                'name' => $field,
+                'name'     => $field,
                 'contents' => $value,
             ];
         }
@@ -178,7 +178,7 @@ class HttpClient
             $files = is_array($files) ? $files : [$files];
             foreach ($files as $file) {
                 $multipart[] = [
-                    'name' => $field,
+                    'name'     => $field,
                     'contents' => fopen($file->path(), 'r'),
                     'filename' => $file->getClientOriginalName(),
                 ];

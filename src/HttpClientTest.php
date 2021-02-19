@@ -137,7 +137,7 @@ class HttpClientTest extends TestCase
         $this->assertNull($response->getContentType());
         $this->assertFalse($response->containsJson());
 
-        $this->assertEquals("", $response->getBody());
+        $this->assertEquals('', $response->getBody());
         $this->assertEquals((object) [], $response->toObject());
         $this->assertEquals([], $response->toArray());
     }
@@ -256,5 +256,4 @@ class HttpClientTest extends TestCase
      */
 
     // TODO
-
 }
