@@ -50,7 +50,7 @@ class HttpClient
      */
     public function withHeaders(array $headers): self
     {
-        return tap($this, fn () => array_merge_recursive($this->options, ['headers' => $headers]));
+        return tap($this, fn () => $this->options = array_merge_recursive($this->options, ['headers' => $headers]));
     }
 
     /**
