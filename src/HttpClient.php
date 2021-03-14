@@ -106,8 +106,6 @@ class HttpClient
      */
     public function forward(Request $request): HttpResponse
     {
-        $this->withHeaders($request->headers->all());
-
         if ($request->method() === 'GET') {
             return $this->withQuery($request->all())->get($request->path());
         }
