@@ -5,6 +5,7 @@ namespace MichielKempen\LaravelHttpClient;
 use GuzzleHttp\Client as Http;
 use GuzzleHttp\ClientInterface as HttpInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class HttpClient
 {
@@ -114,7 +115,7 @@ class HttpClient
             return $this->withQuery($request->all())->head($request->path());
         }
 
-        if ($request->getContentType() === 'multipart/form-data') {
+        if (Str::contains($request->header('CONTENT_TYPE'), 'multipart/form-data')) {
             $this->withMultipartBody($this->generateMultipartBody($request));
         } else {
             $this->withJsonBody($request->input());
