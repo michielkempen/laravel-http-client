@@ -71,6 +71,14 @@ class HttpClient
     }
 
     /**
+     * Indicate that redirects should not be followed.
+     */
+    public function withoutRedirects(): self
+    {
+        return tap($this, fn () => $this->options['allow_redirects'] = false);
+    }
+
+    /**
      * Specify the timeout (in seconds) for the pending request.
      */
     public function withTimeout(int $seconds): self
