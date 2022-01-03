@@ -103,6 +103,14 @@ class HttpClient
     }
 
     /**
+     * Attach a raw json body to the pending request.
+     */
+    public function withRawJsonBody(string $body): self
+    {
+        return tap($this, fn () => $this->options['json'] = $body);
+    }
+
+    /**
      * Attach a multipart body to the pending request.
      */
     public function withMultipartBody(array $body): self
