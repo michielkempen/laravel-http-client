@@ -107,7 +107,9 @@ class HttpClient
      */
     public function withRawJsonBody(string $body): self
     {
-        return tap($this, fn () => $this->options['json'] = $body);
+        $this->withHeaders(['Content-Type' => 'application/json']);
+
+        return tap($this, fn () => $this->options['body'] = $body);
     }
 
     /**
