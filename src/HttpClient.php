@@ -209,16 +209,16 @@ class HttpClient
         $multipart = [];
 
         foreach ($request->input() as $field => $value) {
-            if(is_array($value)) {
+            if (is_array($value)) {
                 foreach ($value as $nestedField => $nestedValue) {
                     $multipart[] = [
-                        'name' => "{$field}[{$nestedField}]",
+                        'name'     => "{$field}[{$nestedField}]",
                         'contents' => $nestedValue,
                     ];
                 }
             } else {
                 $multipart[] = [
-                    'name' => $field,
+                    'name'     => $field,
                     'contents' => $value,
                 ];
             }
