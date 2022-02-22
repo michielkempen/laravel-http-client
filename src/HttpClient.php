@@ -209,17 +209,11 @@ class HttpClient
         $multipart = [];
 
         foreach ($request->input() as $field => $value) {
-            if (is_array($value)) {
-                foreach ($value as $nestedField => $nestedValue) {
-                    $multipart[] = [
-                        'name'     => "{$field}[{$nestedField}]",
-                        'contents' => $nestedValue,
-                    ];
-                }
-            } else {
+            $formData = $this->transformValueToFormData($field, $value);
+            foreach ($formData as $fieldName => $fieldValue) {
                 $multipart[] = [
-                    'name'     => $field,
-                    'contents' => $value,
+                    'name'     => $fieldName,
+                    'contents' => $fieldValue,
                 ];
             }
         }
@@ -246,5 +240,23 @@ class HttpClient
         $response = $this->http->request($method, $url, $this->options);
 
         return new HttpResponse($response);
+    }
+
+    private function transformValueToFormData(string $name, $value): array
+    {
+        $formData = [];
+
+        if (is_array($value)) {
+            foreach ($value as $nestedName => $nestedValue) {
+                $formData = array_merge(
+                    $formData,
+                    $this->transformValueToFormData("{$name}[{$nestedName}]", $nestedValue)
+                );
+            }
+        } else {
+            $formData[$name] = $value;
+        }
+
+        return $formData;
     }
 }
