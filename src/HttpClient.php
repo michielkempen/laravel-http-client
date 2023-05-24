@@ -19,6 +19,8 @@ class HttpClient
      */
     protected array $options = [];
 
+    protected int $retries = 0;
+
     /**
      * Create a new HTTP client.
      */
@@ -118,6 +120,14 @@ class HttpClient
     public function withMultipartBody(array $body): self
     {
         return tap($this, fn () => $this->options['multipart'] = $body);
+    }
+
+    /**
+     * Retry sending the request if it returns an unsuccessful response.
+     */
+    public function retry(int $times = 1): self
+    {
+        return tap($this, fn () => $this->retries = $times);
     }
 
     /**
@@ -237,9 +247,22 @@ class HttpClient
      */
     protected function send(string $method, string $url): HttpResponse
     {
-        $response = $this->http->request($method, $url, $this->options);
+        $try = 0;
 
-        return new HttpResponse($response);
+        do {
+            $response = $this->http->request($method, $url, $this->options);
+
+            $httpResponse = new HttpResponse($response);
+
+            if ($httpResponse->isSuccessful()) {
+                break;
+            }
+
+            sleep(1);
+            $try++;
+        } while ($try <= $this->retries);
+
+        return $httpResponse;
     }
 
     private function transformValueToFormData(string $name, $value): array
